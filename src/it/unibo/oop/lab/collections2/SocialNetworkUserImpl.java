@@ -29,7 +29,6 @@ public class SocialNetworkUserImpl<U extends User> extends UserImpl implements S
      * 
      * think of what type of keys and values would best suit the requirements
      */
-
     /*
      * [CONSTRUCTORS]
      * 
@@ -40,6 +39,9 @@ public class SocialNetworkUserImpl<U extends User> extends UserImpl implements S
      * 
      * 2) Define a further constructor where age is defaulted to -1
      */
+	public SocialNetworkUserImpl(final String name, final String surname, final String user) {
+        this(name, surname, user, -1);
+    }
 
     /**
      * Builds a new {@link SocialNetworkUserImpl}.
