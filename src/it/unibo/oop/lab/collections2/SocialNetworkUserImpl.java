@@ -1,7 +1,10 @@
 package it.unibo.oop.lab.collections2;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -29,6 +32,7 @@ public class SocialNetworkUserImpl<U extends User> extends UserImpl implements S
      * 
      * think of what type of keys and values would best suit the requirements
      */
+    Map<String, List<U>> map;
     /*
      * [CONSTRUCTORS]
      * 
@@ -41,6 +45,7 @@ public class SocialNetworkUserImpl<U extends User> extends UserImpl implements S
      */
 	public SocialNetworkUserImpl(final String name, final String surname, final String user) {
         this(name, surname, user, -1);
+        this.map = new HashMap<>();
     }
 
     /**
@@ -58,6 +63,7 @@ public class SocialNetworkUserImpl<U extends User> extends UserImpl implements S
      */
     public SocialNetworkUserImpl(final String name, final String surname, final String user, final int userAge) {
         super(name, surname, user, userAge);
+        this.map = new HashMap<>();
     }
 
     /*
@@ -67,18 +73,37 @@ public class SocialNetworkUserImpl<U extends User> extends UserImpl implements S
      */
 
     @Override
-    public boolean addFollowedUser(final String circle, final U user) {
+    public 
+    boolean addFollowedUser(final String circle, final U user) {
+        if(circle != null && user != null) {
+            List<U> users = new ArrayList<>();
+            if(this.map.containsKey(circle)) {
+                users = this.map.get(circle); // users = --> per riferimento
+                users.add(user); //this.map.get(circle).add(user);
+            } else {
+                users.add(user);
+                this.map.put(circle, users);
+            }
+        }
         return false;
     }
 
     @Override
     public Collection<U> getFollowedUsersInGroup(final String groupName) {
-        return null;
+        if(groupName != null && this.map.get(groupName) != null) {
+            return this.map.get(groupName);
+        } else {
+            return new ArrayList<>();
+        }
     }
 
     @Override
     public List<U> getFollowedUsers() {
-        return null;
+        List<U> followeds = new ArrayList<>();
+        for(String s : this.map.keySet()) {
+            followeds.addAll(this.map.get(s));
+        }
+        return followeds;
     }
 
 }

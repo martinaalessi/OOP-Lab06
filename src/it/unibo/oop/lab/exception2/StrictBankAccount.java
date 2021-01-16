@@ -34,8 +34,9 @@ public class StrictBankAccount implements BankAccount {
     /**
      * 
      * {@inheritDoc}
+     * @throws WrongAccountHolderException 
      */
-    public void deposit(final int usrID, final double amount) {
+    public void deposit(final int usrID, final double amount) throws WrongAccountHolderException {
         if (checkUser(usrID)) {
             this.balance += amount;
             increaseTransactionsCount();
@@ -45,32 +46,43 @@ public class StrictBankAccount implements BankAccount {
     /**
      * 
      * {@inheritDoc}
+     * @throws WrongAccountHolderException 
+     * @throws NotEnoughFoundsException 
      */
-    public void withdraw(final int usrID, final double amount) {
+    public void withdraw(final int usrID, final double amount) throws WrongAccountHolderException, NotEnoughFoundsException {
         if (checkUser(usrID) && isWithdrawAllowed(amount)) {
-            this.balance -= amount;
-            increaseTransactionsCount();
-        }
+                this.balance -= amount;
+                increaseTransactionsCount();
+        } 
     }
 
     /**
      * 
      * {@inheritDoc}
+     * @throws WrongAccountHolderException 
+     * @throws TransactionsOverQuotaException 
      */
-    public void depositFromATM(final int usrID, final double amount) {
+    public void depositFromATM(final int usrID, final double amount) throws WrongAccountHolderException, TransactionsOverQuotaException {
         if (totalTransactionCount < maximumAllowedATMTransactions) {
             this.deposit(usrID, amount - StrictBankAccount.ATM_TRANSACTION_FEE);
             increaseTransactionsCount();
+        } else {
+            throw new TransactionsOverQuotaException(totalTransactionCount, maximumAllowedATMTransactions);
         }
     }
 
     /**
      * 
      * {@inheritDoc}
+     * @throws WrongAccountHolderException 
+     * @throws NotEnoughFoundsException 
+     * @throws TransactionsOverQuotaException 
      */
-    public void withdrawFromATM(final int usrID, final double amount) {
+    public void withdrawFromATM(final int usrID, final double amount) throws WrongAccountHolderException, NotEnoughFoundsException, TransactionsOverQuotaException {
         if (totalTransactionCount < maximumAllowedATMTransactions) {
             this.withdraw(usrID, amount + StrictBankAccount.ATM_TRANSACTION_FEE);
+        } else {
+            throw new TransactionsOverQuotaException(totalTransactionCount, maximumAllowedATMTransactions);
         }
     }
 
@@ -94,20 +106,29 @@ public class StrictBankAccount implements BankAccount {
      * 
      * @param usrID
      *            id of the user related to these fees
+     * @throws WrongAccountHolderException 
+     * @throws NotEnoughFoundsException 
      */
-    public void computeManagementFees(final int usrID) {
+    public void computeManagementFees(final int usrID) throws WrongAccountHolderException, NotEnoughFoundsException {
         final double feeAmount = MANAGEMENT_FEE + (totalTransactionCount * StrictBankAccount.TRANSACTION_FEE);
         if (checkUser(usrID) && isWithdrawAllowed(feeAmount)) {
-            balance -= MANAGEMENT_FEE + totalTransactionCount * StrictBankAccount.TRANSACTION_FEE;
-            totalTransactionCount = 0;
+                balance -= MANAGEMENT_FEE + totalTransactionCount * StrictBankAccount.TRANSACTION_FEE;
+                totalTransactionCount = 0;
         }
     }
 
-    private boolean checkUser(final int id) {
-        return this.usrID == id;
+    private boolean checkUser(final int id) throws WrongAccountHolderException {
+        if(this.usrID != id) {
+            throw new WrongAccountHolderException(this.usrID, id);
+        } else {
+            return this.usrID == id;
+        }
     }
 
-    private boolean isWithdrawAllowed(final double amount) {
+    private boolean isWithdrawAllowed(final double amount) throws NotEnoughFoundsException {
+        if(getBalance() < amount) {
+            throw new NotEnoughFoundsException(this.balance, amount);
+        }
         return balance > amount;
     }
 
